@@ -1,6 +1,6 @@
 import { DatePipe } from '@angular/common';
 import { Slides } from 'ionic-angular';
-import { Component, OnInit, OnChanges, HostBinding, Input, Output, EventEmitter, SimpleChanges, ViewChild, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit, OnChanges, Input, Output, EventEmitter, SimpleChanges, ViewChild } from '@angular/core';
 
 import { ICalendarComponent, IDisplayEvent, IEvent, ITimeSelected, IRange, IWeekView, IWeekViewRow, IWeekViewDateRow, CalendarMode } from './calendar';
 import { CalendarService } from './calendar.service';
@@ -8,119 +8,93 @@ import { CalendarService } from './calendar.service';
 @Component({
     selector: 'weekview',
     template: `
-            <ion-slides #weekSlider [options]="slideOption" (ionDidChange)="onSlideChanged()">
-                <ion-slide *ngFor="let view of views; let viewIndex=index">
-                    <table class="table table-bordered table-fixed weekview-header">
-                        <thead>
-                        <tr>
-                            <th class="calendar-hour-column"></th>
-                            <th class="weekview-header text-center" *ngFor="let dt of view.dates">{{dt.date|date:
-                                formatWeekViewDayHeader}}
-                            </th>
-                        </tr>
-                        </thead>
-                    </table>
-                    <div class="weekview-allday-table">
-                        <div class="weekview-allday-label">{{allDayLabel}}</div>
-                        <ion-scroll scrollY="true" class="weekview-allday-content-wrapper" zoom="false">
-                            <table class="table table-fixed weekview-allday-content-table">
-                                <tbody>
-                                <tr>
-                                    <td *ngFor="let day of view.dates" class="calendar-cell">
-                                        <div [ngClass]="{'calendar-event-wrap': day.events}" *ngIf="day.events"
-                                                [ngStyle]="{height: 25*day.events.length+'px'}">
-                                            <div *ngFor="let displayEvent of day.events" class="calendar-event"
-                                                    (click)="eventSelected(displayEvent.event)"
-                                                    [ngStyle]="{top: 25*displayEvent.position+'px', width: 100*(displayEvent.endIndex-displayEvent.startIndex)+'%', height: '25px'}">
-                                                <div class="calendar-event-inner">{{displayEvent.event.title}}</div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                </tr>
-                                </tbody>
-                            </table>
-                        </ion-scroll>
-                    </div>
-                    <ion-scroll scrollY="true" class="weekview-normal-event-container" zoom="false">
-                        <table class="table table-bordered table-fixed weekview-normal-event-table">
-                            <tbody>
-                            <tr *ngFor="let row of view.rows">
-                                <td class="calendar-hour-column text-center">
-                                    {{row[0].time | date: formatHourColumn}}
-                                </td>
-                                <td *ngFor="let tm of row" class="calendar-cell" (click)="select(tm.time, tm.events)">
-                                    <div [ngClass]="{'calendar-event-wrap': tm.events}" *ngIf="tm.events">
-                                        <div *ngFor="let displayEvent of tm.events" class="calendar-event"
-                                                (click)="eventSelected(displayEvent.event)"
-                                                [ngStyle]="{top: (37*displayEvent.startOffset/hourParts)+'px',left: 100/displayEvent.overlapNumber*displayEvent.position+'%', width: 100/displayEvent.overlapNumber+'%', height: 37*(displayEvent.endIndex -displayEvent.startIndex - (displayEvent.endOffset + displayEvent.startOffset)/hourParts)+'px'}">
-                                            <div class="calendar-event-inner">{{displayEvent.event.title}}</div>
-                                        </div>
-                                    </div>
-                                </td>
-                            </tr>
-                            </tbody>
-                        </table>
-                    </ion-scroll>
-                </ion-slide>
-            </ion-slides>
+        <ion-slides #weekSlider [options]="slideOption" (ionDidChange)="onSlideChanged()">
+            <ion-slide *ngFor="let view of views; let viewIndex=index">
+                <ion-row class="header-row">
+                    <ion-col class="hour-column"></ion-col>
+                    <ion-col *ngFor="let dt of view.dates">
+                        {{ dt.date | date: formatWeekViewDayHeader }}
+                    </ion-col>
+                </ion-row>
+                <ion-scroll scrollY="true" class="hour-rows-scroll">
+                    <ion-row *ngFor="let row of view.rows" class="hour-row">
+                        <ion-col class="hour-column">
+                            {{ row[0].time | date: formatHourColumn }}
+                        </ion-col>
+                        <ion-col *ngFor="let tm of row" (click)="select(tm.time, tm.events)">
+                            <div [class.calendar-event-wrap]="tm.events" *ngIf="tm.events">
+                                <div *ngFor="let displayEvent of tm.events" class="calendar-event"
+                                        (click)="eventSelected(displayEvent.event)"
+                                        [style.top]="(65 * displayEvent.startOffset / hourParts) + 'px'"
+                                        [style.left]="100 / displayEvent.overlapNumber * displayEvent.position + '%'"
+                                        [style.width]="100 / displayEvent.overlapNumber + '%'"
+                                        [style.height]="65 * (displayEvent.endIndex - displayEvent.startIndex - (displayEvent.endOffset + displayEvent.startOffset) / hourParts) + 'px'">
+                                    <div class="calendar-event-inner">{{ displayEvent.event.title }}</div>
+                                </div>
+                            </div>
+                        </ion-col>
+                    </ion-row>
+                </ion-scroll>
+            </ion-slide>
+        </ion-slides>
     `,
     styles: [`
-        .scrollable {
-          width: 100%;
-          overflow-x: hidden;
-          overflow-y: auto;
+        .swiper-slide {
+            font-size: 14px;
+            align-items: flex-start;
         }
 
-        .table-fixed {
-          table-layout: fixed;
+        .slide-zoom {
+          height: 100%;
         }
 
-        .table {
-          width: 100%;
-          max-width: 100%;
-          background-color: transparent;
+        ion-col {
+            padding: 0;
         }
 
-        .table > thead > tr > th, .table > tbody > tr > th, .table > tfoot > tr > th, .table > thead > tr > td,
-        .table > tbody > tr > td, .table > tfoot > tr > td {
-          padding: 8px;
-          line-height: 20px;
-          vertical-align: top;
+        .header-row {
+            line-height: 40px;
         }
 
-        .table > thead > tr > th {
-          vertical-align: bottom;
-          border-bottom: 2px solid #ddd;
-        }
-
-        .table > thead:first-child > tr:first-child > th, .table > thead:first-child > tr:first-child > td {
-          border-top: 0
-        }
-
-        .table > tbody + tbody {
-          border-top: 2px solid #ddd;
-        }
-
-        .table-bordered {
-          border: 1px solid #ddd;
-        }
-
-        .table-bordered > thead > tr > th, .table-bordered > tbody > tr > th, .table-bordered > tfoot > tr > th,
-        .table-bordered > thead > tr > td, .table-bordered > tbody > tr > td, .table-bordered > tfoot > tr > td {
-          border: 1px solid #ddd;
-        }
-
-        .table-bordered > thead > tr > th, .table-bordered > thead > tr > td {
-          border-bottom-width: 2px;
-        }
-
-        .table-striped > tbody > tr:nth-child(odd) > td, .table-striped > tbody > tr:nth-child(odd) > th {
-          background-color: #f9f9f9
-        }
-
-        .calendar-hour-column {
-          width: 50px;
+        .header-row ion-col {
+          overflow: hidden;
           white-space: nowrap;
+        }
+
+        .header-row ion-col:not(.hour-column) {
+            border-bottom: 0.5px solid #ddd;
+        }
+
+        .allday-row {
+          position: relative;
+        }
+
+        .allday-row ion-scroll,
+        .allday-row .scroll-zoom-wrapper {
+            height: 50px;
+        }
+
+        .hour-column {
+            flex: 0 0 40px;
+            max-width: 40px;
+        }
+
+        .hour-rows-scroll {
+          overflow: hidden;
+          left: 0;
+          right: 0;
+          top: 40px;
+          bottom: 0;
+          position: absolute;
+        }
+
+        .hour-row {
+            height: 65px;
+        }
+
+        .hour-row ion-col:not(.hour-column) {
+            border-bottom: 0.5px solid #ddd;
+            border-right: 0.5px solid #ddd;
         }
 
         .calendar-event-wrap {
@@ -131,7 +105,7 @@ import { CalendarService } from './calendar.service';
 
         .calendar-event {
           position: absolute;
-          padding: 2px;
+          padding: 1px;
           cursor: pointer;
           z-index: 10000;
         }
@@ -146,122 +120,14 @@ import { CalendarService } from './calendar.service';
           line-height: 15px;
         }
 
-        .calendar-cell {
-          padding: 0 !important;
-          height: 37px;
-        }
-
-        .weekview-allday-label {
-          float: left;
-          height: 100%;
-          line-height: 50px;
-          text-align: center;
-          width: 50px;
-        }
-
-        .weekview-allday-content-wrapper {
-          margin-left: 50px;
-          overflow: hidden;
-          height: 51px;
-        }
-
-        .weekview-allday-content-table {
-          min-height: 50px;
-        }
-
-        .weekview-allday-content-table td {
-          border-left: 1px solid #ddd;
-          border-right: 1px solid #ddd;
-        }
-
-        .weekview {
-          height: 100%;
-        }
-
-        .weekview-header th {
-          overflow: hidden;
-          white-space: nowrap;
-          font-size: 14px;
-        }
-
-        .weekview-allday-table {
-          height: 50px;
-          position: relative;
-          border-bottom: 1px solid #ddd;
-          font-size: 14px;
-        }
-
-        .weekview-normal-event-container {
-          margin-top: 87px;
-          overflow: hidden;
-          left: 0;
-          right: 0;
-          top: 0;
-          bottom: 0;
-          position: absolute;
-          font-size: 14px;
-        }
-
-        .weekview .slide-zoom {
-          height: 100%;
-        }
-
-        .weekview-allday-content-wrapper scroll-content {
-          width: 100%;
-        }
-
         ::-webkit-scrollbar,
         *::-webkit-scrollbar {
           display: none;
         }
-
-        .table > tbody > tr > td.calendar-hour-column {
-          padding-left: 0;
-          padding-right: 0;
-          vertical-align: middle;
-        }
-
-        @media (max-width: 750px) {
-          .weekview-allday-label, .calendar-hour-column {
-            width: 31px;
-            font-size: 12px;
-          }
-
-          .weekview-allday-label {
-            padding-top: 4px;
-          }
-
-          .table > tbody > tr > td.calendar-hour-column {
-            padding-left: 0;
-            padding-right: 0;
-            vertical-align: middle;
-            line-height: 12px;
-          }
-
-          .table > thead > tr > th.weekview-header {
-            padding-left: 0;
-            padding-right: 0;
-            font-size: 12px;
-          }
-
-          .weekview-allday-label {
-            line-height: 20px;
-          }
-
-          .weekview-allday-content-wrapper {
-            margin-left: 31px;
-          }
-
-          .calendar-event-inner {
-            font-size: 12px;
-          }
-        }
-    `],
-    encapsulation: ViewEncapsulation.None
+    `]
 })
 export class WeekViewComponent implements ICalendarComponent, OnInit, OnChanges {
     @ViewChild('weekSlider') slider: Slides;
-    @HostBinding('class.weekview') class = true;
 
     @Input() formatWeekTitle: string;
     @Input() formatWeekViewDayHeader: string;
@@ -309,6 +175,14 @@ export class WeekViewComponent implements ICalendarComponent, OnInit, OnChanges 
     }
 
     onSlideChanged() {
+        let s = (<any>this.slider.getSlider());
+        console.log('slidechanged', s);
+        let oldIndex = s.activeIndex - s.loopedSlides;
+        s.destroyLoop();
+        s.createLoop();
+        s.update();
+        s.slideTo(oldIndex + s.loopedSlides, 0, false);
+
         setTimeout(() => {
             let currentSlideIndex = this.slider.getActiveIndex(),
                 direction = 0,

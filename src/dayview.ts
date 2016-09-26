@@ -1,6 +1,6 @@
 import { DatePipe } from '@angular/common';
 import { Slides } from 'ionic-angular';
-import { Component, OnInit, OnChanges, HostBinding, Input, Output, EventEmitter, SimpleChanges, ViewChild, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit, OnChanges, HostBinding, Input, Output, EventEmitter, SimpleChanges, ViewChild } from '@angular/core';
 
 import { ICalendarComponent, IDayView, IDayViewRow, IDisplayEvent, IEvent, ITimeSelected, IRange, CalendarMode } from './calendar';
 import { CalendarService } from './calendar.service';
@@ -249,8 +249,7 @@ import { CalendarService } from './calendar.service';
             font-size: 12px;
           }
         }
-    `],
-    encapsulation: ViewEncapsulation.None
+    `]
 })
 export class DayViewComponent implements ICalendarComponent, OnInit, OnChanges {
     @ViewChild('daySlider') slider: Slides;
