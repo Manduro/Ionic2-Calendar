@@ -468,8 +468,6 @@ export class DayViewComponent implements ICalendarComponent, OnInit, OnChanges {
 
     refreshView() {
         this.range = this.getRange(this.calendarService.currentDate);
-        this.onRangeChanged.emit(this.range);
-
         let title = this.getTitle();
         this.onTitleChanged.emit(title);
 
